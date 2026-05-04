@@ -1,4 +1,6 @@
--- [[ XiaoYu Pro - Advanced Synthetic Script V5 ]]
+-- [[ XiaoYu Pro - Ultimate Resizable Script V6 ]]
+-- [[ KEY: XiaoYu_Pro_0611 ]]
+
 local K, ID = "XiaoYu_Pro_0611", "rbxassetid://135898863618386"
 local TS, VU, LP = game:GetService("TweenService"), game:GetService("VirtualUser"), game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
@@ -19,14 +21,13 @@ SB.Size, SB.Position, SB.Text = UDim2.new(0.8,0,0,35), UDim2.new(0.1,0,0.7,0), "
 SB.BackgroundColor3, SB.TextColor3 = Color3.fromRGB(0,120,215), Color3.new(1,1,1)
 Instance.new("UICorner", SB)
 
--- [[ 2. Resizable Main Menu ]]
+-- [[ 2. Main Menu (Resizable & Draggable) ]]
 local MF = Instance.new("Frame", SG)
 MF.Size, MF.Position, MF.BackgroundColor3, MF.Visible = UDim2.new(0,400,0,250), UDim2.new(0.5,-200,0.4,-125), Color3.fromRGB(15,15,15), false
 MF.Active = true
-MF.Draggable = true -- 讓選單可以拖動位置
+MF.Draggable = true 
 Instance.new("UICorner", MF)
 
--- Resize Handle (右下角調整大小)
 local ResizeHandle = Instance.new("TextButton", MF)
 ResizeHandle.Size = UDim2.new(0, 20, 0, 20)
 ResizeHandle.Position = UDim2.new(1, -20, 1, -20)
@@ -41,10 +42,8 @@ Instance.new("UICorner", Side)
 local Cont = Instance.new("Frame", MF)
 Cont.Size, Cont.Position, Cont.BackgroundTransparency = UDim2.new(1,-110,1,-70), UDim2.new(0,105,0,5), 1
 
--- [[ 3. Options & Toggles ]]
+-- [[ 3. Interactive Options ]]
 local AFK_Enabled = true
-local currentLang = "EN"
-
 local AFKToggle = Instance.new("TextButton", Cont)
 AFKToggle.Size, AFKToggle.Position = UDim2.new(0.9,0,0,40), UDim2.new(0.05,0,0.1,0)
 AFKToggle.Text = "Anti-AFK: ON"
@@ -53,16 +52,12 @@ AFKToggle.TextColor3 = Color3.new(1,1,1)
 AFKToggle.Visible = false
 Instance.new("UICorner", AFKToggle)
 
-local LangLabel = Instance.new("TextLabel", Cont)
-LangLabel.Size, LangLabel.Text = UDim2.new(1,0,0,40), "Language: English"
-LangLabel.TextColor3, LangLabel.BackgroundTransparency, LangLabel.Visible = Color3.new(1,1,1), 1, false
-
--- [[ 4. Floating Avatar ]]
+-- [[ 4. Minimize Avatar ]]
 local Ball = Instance.new("ImageButton", SG)
 Ball.Size, Ball.Visible, Ball.Image = UDim2.new(0,65,0,65), false, ID
 Instance.new("UICorner", Ball).CornerRadius = UDim.new(1,0)
 
--- [[ Logic ]]
+-- [[ Logic Implementation ]]
 SB.MouseButton1Click:Connect(function()
     if KI.Text == K then KF.Visible, MF.Visible = false, true else KI.Text = "" KI.PlaceholderText = "WRONG!" end
 end)
@@ -75,17 +70,15 @@ local function Tab(txt, y, callback)
     b.MouseButton1Click:Connect(callback)
 end
 
--- Tab Actions
-Tab("AFK Sys", 10, function() AFKToggle.Visible, LangLabel.Visible = true, false end)
-Tab("Lang", 50, function() AFKToggle.Visible, LangLabel.Visible = false, true end)
+Tab("AFK Sys", 10, function() AFKToggle.Visible = true end)
+Tab("Lang", 50, function() AFKToggle.Visible = false end)
 
 AFKToggle.MouseButton1Click:Connect(function()
     AFK_Enabled = not AFK_Enabled
-    AFKToggle.Text = AFK_Enabled and (currentLang == "EN" and "Anti-AFK: ON" or "防掉線：開啟") or (currentLang == "EN" and "Anti-AFK: OFF" or "防掉線：關閉")
+    AFKToggle.Text = AFK_Enabled and "Anti-AFK: ON" or "Anti-AFK: OFF"
     AFKToggle.BackgroundColor3 = AFK_Enabled and Color3.fromRGB(0,150,0) or Color3.fromRGB(150,0,0)
 end)
 
--- Minimize Logic
 local MBtn = Instance.new("TextButton", MF)
 MBtn.Size, MBtn.Position, MBtn.Text = UDim2.new(0.7,0,0,40), UDim2.new(0.25,0,0.85,0), "Minimize"
 MBtn.BackgroundColor3, MBtn.TextColor3 = Color3.fromRGB(45,45,45), Color3.new(1,1,1)
@@ -101,10 +94,9 @@ UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputT
 UIS.InputChanged:Connect(function(input)
     if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
         local mousePos = UIS:GetMouseLocation()
-        local newSize = UDim2.new(0, mousePos.X - MF.AbsolutePosition.X, 0, mousePos.Y - MF.AbsolutePosition.Y - 36)
-        MF.Size = newSize
+        MF.Size = UDim2.new(0, mousePos.X - MF.AbsolutePosition.X, 0, mousePos.Y - MF.AbsolutePosition.Y - 36)
     end
 end)
 
--- Anti-AFK Core
+-- Anti-AFK Core Logic
 LP.Idled:Connect(function() if AFK_Enabled then VU:CaptureController() VU:ClickButton2(Vector2.new(0,0)) end end)
