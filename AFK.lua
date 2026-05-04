@@ -1,12 +1,13 @@
 -- [[ CONFIGURATION ]]
-local CorrectKey = "XiaoYu_pro_000"
+local CorrectKey = "XiaoYu_pro_000" -- Your Key
 local _G.AFK_Enabled = false
-local CurrentLang = "EN" -- "EN" or "TW"
+local CurrentLang = "EN" -- Default Language
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 -- [[ UI SETUP ]]
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "XiaoYu_Multilingual_V3"
+ScreenGui.Name = "XiaoYu_Final_v4"
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -17,8 +18,8 @@ MinimizeIcon.Visible = false
 MinimizeIcon.Size = UDim2.new(0, 65, 0, 65)
 MinimizeIcon.Position = UDim2.new(0.1, 0, 0.5, 0)
 MinimizeIcon.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
--- 圖片使用你提供的樣式 (五條悟)
-MinimizeIcon.Image = "rbxassetid://134267439369905" 
+MinimizeIcon.Image = "rbxassetid://134267439369905" -- Your Image ID
+MinimizeIcon.ZIndex = 10
 MinimizeIcon.Parent = ScreenGui
 
 local IconCorner = Instance.new("UICorner")
@@ -38,7 +39,7 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 15)
 MainCorner.Parent = MainFrame
 
--- Minimize Button
+-- Top Bar UI
 local MiniBtn = Instance.new("TextButton")
 MiniBtn.Size = UDim2.new(0, 30, 0, 30)
 MiniBtn.Position = UDim2.new(1, -35, 0, 5)
@@ -48,7 +49,6 @@ MiniBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MiniBtn.TextSize = 25
 MiniBtn.Parent = MainFrame
 
--- Language Switcher Button
 local LangBtn = Instance.new("TextButton")
 LangBtn.Size = UDim2.new(0, 80, 0, 25)
 LangBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -61,23 +61,23 @@ local LangCorner = Instance.new("UICorner")
 LangCorner.CornerRadius = UDim.new(0, 5)
 LangCorner.Parent = LangBtn
 
--- UI Elements
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 50)
 Title.BackgroundTransparency = 1
 Title.Text = "XIAOYU SYSTEM"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 20
+Title.TextSize = 18
 Title.Font = Enum.Font.GothamBold
 Title.Parent = MainFrame
 
+-- Page Container
 local Container = Instance.new("Frame")
 Container.Size = UDim2.new(1, 0, 1, -50)
 Container.Position = UDim2.new(0, 0, 0, 50)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
 
--- AUTH PAGE
+-- [PAGE 1: AUTH]
 local AuthPage = Instance.new("Frame")
 AuthPage.Size = UDim2.new(1, 0, 1, 0)
 AuthPage.BackgroundTransparency = 1
@@ -91,6 +91,7 @@ KeyBox.PlaceholderText = "ENTER KEY..."
 KeyBox.Text = ""
 KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 KeyBox.Parent = AuthPage
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
 
 local VerifyBtn = Instance.new("TextButton")
 VerifyBtn.Size = UDim2.new(0.8, 0, 0, 40)
@@ -100,8 +101,9 @@ VerifyBtn.Text = "AUTHENTICATE"
 VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 VerifyBtn.Font = Enum.Font.GothamBold
 VerifyBtn.Parent = AuthPage
+Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
 
--- MAIN PAGE
+-- [PAGE 2: MAIN]
 local MainPage = Instance.new("Frame")
 MainPage.Size = UDim2.new(1, 0, 1, 0)
 MainPage.BackgroundTransparency = 1
@@ -116,8 +118,9 @@ ToggleBtn.Text = "ANTI-AFK: DISABLED"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.Parent = MainPage
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 8)
 
--- [[ LANGUAGE DICTIONARY ]]
+-- [[ LANGUAGE DATA ]]
 local LangTable = {
     EN = {
         Placeholder = "ENTER KEY...",
@@ -125,7 +128,6 @@ local LangTable = {
         Denied = "ACCESS DENIED",
         AfkOff = "ANTI-AFK: DISABLED",
         AfkOn = "ANTI-AFK: ENABLED",
-        Success = "Access Granted",
         LangName = "English"
     },
     TW = {
@@ -134,33 +136,66 @@ local LangTable = {
         Denied = "驗證失敗",
         AfkOff = "防斷線：已關閉",
         AfkOn = "防斷線：已開啟",
-        Success = "驗證成功",
         LangName = "繁體中文"
     }
 }
 
-local function UpdateLanguage()
+local function UpdateUI()
     local data = LangTable[CurrentLang]
     LangBtn.Text = data.LangName
     if not MainPage.Visible then
         KeyBox.PlaceholderText = data.Placeholder
         VerifyBtn.Text = data.Verify
+    end
+    ToggleBtn.Text = _G.AFK_Enabled and data.AfkOn or data.AfkOff
+end
+
+-- [[ CORE FUNCTIONS ]]
+local function SmoothToggle(showMain)
+    if showMain then
+        MainFrame.Visible = true
+        MinimizeIcon:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Quad", 0.3, true)
+        task.wait(0.1)
+        MainFrame:TweenSize(UDim2.new(0, 280, 0, 220), "Out", "Back", 0.5, true)
+        task.wait(0.4)
+        MinimizeIcon.Visible = false
     else
-        ToggleBtn.Text = _G.AFK_Enabled and data.AfkOn or data.AfkOff
+        MainFrame:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quad", 0.4, true)
+        task.wait(0.4)
+        MainFrame.Visible = false
+        MinimizeIcon.Visible = true
+        MinimizeIcon:TweenSize(UDim2.new(0, 65, 0, 65), "Out", "Back", 0.5, true)
     end
 end
 
--- [[ LOGIC ]]
+-- Dragging Logic for Round Icon
+local dragging, dragStart, startPos
+MinimizeIcon.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MinimizeIcon.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MinimizeIcon.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+MinimizeIcon.InputEnded:Connect(function() dragging = false end)
+
+-- Button Connections
 LangBtn.MouseButton1Click:Connect(function()
     CurrentLang = (CurrentLang == "EN") and "TW" or "EN"
-    UpdateLanguage()
+    UpdateUI()
 end)
 
 VerifyBtn.MouseButton1Click:Connect(function()
     if KeyBox.Text == CorrectKey then
         AuthPage.Visible = false
         MainPage.Visible = true
-        UpdateLanguage()
+        UpdateUI()
     else
         KeyBox.Text = ""
         KeyBox.PlaceholderText = LangTable[CurrentLang].Denied
@@ -169,34 +204,12 @@ end)
 
 ToggleBtn.MouseButton1Click:Connect(function()
     _G.AFK_Enabled = !_G.AFK_Enabled
-    if _G.AFK_Enabled then
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    else
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-    end
-    UpdateLanguage()
+    ToggleBtn.BackgroundColor3 = _G.AFK_Enabled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(150, 0, 0)
+    UpdateUI()
 end)
 
--- [[ ANIMATION FUNCTIONS ]]
-local function ToggleUI(showMain)
-    if showMain then
-        MainFrame.Visible = true
-        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {Size = UDim2.new(0, 280, 0, 220)}):Play()
-        TweenService:Create(MinimizeIcon, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-        task.wait(0.3)
-        MinimizeIcon.Visible = false
-    else
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-        task.wait(0.3)
-        MainFrame.Visible = false
-        MinimizeIcon.Visible = true
-        MinimizeIcon.Size = UDim2.new(0, 0, 0, 0)
-        TweenService:Create(MinimizeIcon, TweenInfo.new(0.4, Enum.EasingStyle.Back), {Size = UDim2.new(0, 65, 0, 65)}):Play()
-    end
-end
-
-MiniBtn.MouseButton1Click:Connect(function() ToggleUI(false) end)
-MinimizeIcon.MouseButton1Click:Connect(function() ToggleUI(true) end)
+MiniBtn.MouseButton1Click:Connect(function() SmoothToggle(false) end)
+MinimizeIcon.MouseButton1Click:Connect(function() SmoothToggle(true) end)
 
 -- AFK Loop
 game:GetService("Players").LocalPlayer.Idled:Connect(function()
@@ -206,21 +219,5 @@ game:GetService("Players").LocalPlayer.Idled:Connect(function()
     end
 end)
 
--- Icon Dragging Logic
-local dragging, dragStart, startPos
-MinimizeIcon.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MinimizeIcon.Position
-    end
-end)
-game:GetService("UserInputService").InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        MinimizeIcon.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-MinimizeIcon.InputEnded:Connect(function() dragging = false end)
-
-UpdateLanguage()
+UpdateUI()
+warn("XiaoYu System Loaded Successfully")
