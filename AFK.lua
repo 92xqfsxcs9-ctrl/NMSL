@@ -17,7 +17,7 @@ MinimizeIcon.Visible = false
 MinimizeIcon.Size = UDim2.new(0, 65, 0, 65)
 MinimizeIcon.Position = UDim2.new(0.1, 0, 0.5, 0)
 MinimizeIcon.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
--- 使用你提供的圖片 ID (這裡先預設一個，若失效請自行更換 ID)
+-- 圓形圖示圖片
 MinimizeIcon.Image = "rbxassetid://134267439369905" 
 MinimizeIcon.Parent = ScreenGui
 
